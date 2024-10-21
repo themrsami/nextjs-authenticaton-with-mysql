@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const Signup = () => {
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state added
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const formRef = useRef(); // Create a reference for the form
@@ -28,7 +28,7 @@ const Signup = () => {
     e.preventDefault();
     const formData = new FormData(formRef.current); // Use formRef to get form data
 
-    setLoading(true);
+    setLoading(true); // Start loading when form is submitted
     setError(null); // Reset previous errors
     setSuccess(null); // Reset previous success messages
 
@@ -58,7 +58,7 @@ const Signup = () => {
       console.error('Error submitting the form:', err);
       setError([{ message: 'Failed to submit. Please try again later.' }]);
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading after API response
     }
   };
 
@@ -102,7 +102,7 @@ const Signup = () => {
               <Label htmlFor="terms">Accept terms and conditions</Label>
             </div>
             <Button type="submit" disabled={!isTermsAccepted || loading}>
-              {loading ? 'Signing Up...' : 'Sign Up'}
+              {loading ? 'Signing Up...' : 'Sign Up'} {/* Loading indicator in button */}
             </Button>
             {error && (
               <div className="text-red-500">

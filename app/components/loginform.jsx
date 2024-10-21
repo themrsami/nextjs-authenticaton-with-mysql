@@ -15,11 +15,13 @@ import { useRouter } from 'next/navigation';
 
 const Login = () => {
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false); // Added loading state
     const [activeSessions, setActiveSessions] = useState([]); // To store active sessions
     const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading when form is submitted
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
 
@@ -36,6 +38,8 @@ const Login = () => {
                 // Set the session ID in cookies
                 document.cookie = `session_id=${result.session_id}; path=/; secure; samesite=strict`;
                 document.cookie = `user_id=${result.user_id}; path=/; secure; samesite=strict`;
+                document.cookie = `fullname=${result.fullname}; path=/; secure; samesite=strict`;
+                document.cookie = `email=${result.email}; path=/; secure; samesite=strict`;
 
                 // If login is successful, redirect to dashboard
                 router.push('/dashboard');
@@ -47,6 +51,8 @@ const Login = () => {
             }
         } catch (err) {
             setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false); // End loading after API response
         }
     };
 
@@ -97,7 +103,9 @@ const Login = () => {
                         </div>
                         {error && <p className="text-red-500">{error}</p>}
                         <div className="flex justify-end">
-                            <Button type="submit">Login</Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Logging in...' : 'Login'}
+                            </Button>
                         </div>
                     </form>
 

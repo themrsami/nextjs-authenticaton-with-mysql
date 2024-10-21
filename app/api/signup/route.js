@@ -1,3 +1,4 @@
+'use server';
 import DBConnection from '@/dbconnection/db'; // Import your DB connection
 
 export async function POST(request) {

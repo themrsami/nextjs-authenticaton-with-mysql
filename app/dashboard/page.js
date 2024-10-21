@@ -1,17 +1,56 @@
-// app/dashboard/page.js (or wherever your Dashboard component is located)
-
-'use client';
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useAppContext } from "../context/appcontext";
 
 const Dashboard = () => {
     const router = useRouter();
+    const { fullname, setFullname, email, setEmail } = useAppContext();
+
+    useEffect(() => {
+        // Read cookies only on the client side
+        const fullnameCookie = document.cookie.split('; ').find(row => row.startsWith('fullname='));
+        const emailCookie = document.cookie.split('; ').find(row => row.startsWith('email='));
+        const userIdCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
+        const sessionIdCookie = document.cookie.split('; ').find(row => row.startsWith('session_id='));
+
+        if (!fullnameCookie || !emailCookie || !userIdCookie || !sessionIdCookie) {
+            clearSession();
+            router.push('/');
+            return;
+        }
+
+        if (fullnameCookie) {
+            setFullname(fullnameCookie.split('=')[1]);
+        }
+        if (emailCookie) {
+            setEmail(emailCookie.split('=')[1]);
+        }
+    }, []);
 
     const handleLogout = async () => {
-        // Implement logout API call
         try {
-            const sessionId = document.cookie.split('; ').find(row => row.startsWith('session_id=')).split('=')[1]; // Get session_id from cookies
+            const sessionCookie = document.cookie.split('; ').find(row => row.startsWith('session_id='));
+
+            if (!sessionCookie) {
+                clearSession();
+                router.push('/');
+                return;
+            }
+
+            const sessionId = sessionCookie.split('=')[1];
             const userId = document.cookie.split('; ').find(row => row.startsWith('user_id=')).split('=')[1];
+
             const response = await fetch('/api/logout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -19,12 +58,9 @@ const Dashboard = () => {
             });
 
             if (response.ok) {
-                // Clear the session from localStorage
-                localStorage.removeItem('session_id');
-                // Redirect to the login page or home
+                clearSession();
                 router.push('/');
             } else {
-                // Handle error response
                 const result = await response.json();
                 console.error(result.message);
             }
@@ -33,29 +69,41 @@ const Dashboard = () => {
         }
     };
 
+    const clearSession = () => {
+        document.cookie = 'session_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'fullname=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        localStorage.removeItem('session_id');
+    };
+
     return (
-        <div className="min-h-screen bg-slate-900 text-white">
-            <header className="p-4 bg-slate-800">
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <button className="mt-2 bg-red-500 p-2 rounded" onClick={handleLogout}>Logout</button>
-            </header>
-            <main className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-slate-700 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-xl font-semibold">Card 1</h2>
-                        <p className="mt-2">This is a description for card 1.</p>
-                    </div>
-                    <div className="bg-slate-700 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-xl font-semibold">Card 2</h2>
-                        <p className="mt-2">This is a description for card 2.</p>
-                    </div>
-                    <div className="bg-slate-700 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-xl font-semibold">Card 3</h2>
-                        <p className="mt-2">This is a description for card 3.</p>
-                    </div>
+        <>
+            <nav className="max-w-[100%] px-4 mx-auto my-8 flex justify-between">
+                <Link href="/dashboard">
+                    <h1 className="text-2xl text-center font-semibold border border-black px-4 py-1">Dashboard</h1>
+                </Link>
+                <div className="flex gap-2 justify-center items-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <div className="ring-1 px-4 py-1.5 ring-slate-950">Profile</div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuLabel>
+                                <div className="flex flex-col">
+                                <span className="text-lg ring-1 ring-slate-950 px-2"> {fullname} </span>
+                                    <span>{email}</span>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout}>
+                                Logout
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-            </main>
-        </div>
+            </nav>
+        </>
     );
 };
 
